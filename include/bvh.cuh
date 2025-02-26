@@ -19,7 +19,7 @@ struct bvh_node {
 struct Scene;
 __host__ bvh_node* build_bvh(Scene& scene, unsigned int start, unsigned int end, unsigned int& size, int min_triangles = 1);
 
-struct DeviceBVHNode {
+struct FlattenBVHNode {
     vec3 pmin, pmax;
     unsigned int left_idx, right_idx;
     unsigned int start, end;
@@ -27,4 +27,4 @@ struct DeviceBVHNode {
     int axis;
 };
 
-__host__ void bvhFlatten(bvh_node* root, DeviceBVHNode* device_bvh);
+__host__ void bvhFlatten(bvh_node* root, FlattenBVHNode* fla_bvh);

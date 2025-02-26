@@ -52,31 +52,31 @@ __host__ bvh_node* build_bvh(Scene& scene, unsigned int start, unsigned int end,
     return new bvh_node(pmin, pmax, left, right, start, end, axis);
 
 }
-__host__ void bvhFlatten(bvh_node* root, DeviceBVHNode* device_bvh) {
+__host__ void bvhFlatten(bvh_node* root, FlattenBVHNode* fla_bvh) {
     if (!root) return ;
 
     std::queue<bvh_node*> queue;
     std::unordered_map<bvh_node*, int> node_indices;
-        
+    
     queue.push(root);
     int node_count = 0;
-        
+    
     while (!queue.empty()) {
         bvh_node* node = queue.front();
         queue.pop();
         
         int current_index = node_count++;
         node_indices[node] = current_index;
+        
+        fla_bvh[current_index].pmin = node->pmin;
+        fla_bvh[current_index].pmax = node->pmax;
+        fla_bvh[current_index].start = node->start;
+        fla_bvh[current_index].end = node->end;
+        fla_bvh[current_index].axis = node->axis;
+        fla_bvh[current_index].is_leaf = (node->left == nullptr && node->right == nullptr);
             
-        device_bvh[current_index].pmin = node->pmin;
-        device_bvh[current_index].pmax = node->pmax;
-        device_bvh[current_index].start = node->start;
-        device_bvh[current_index].end = node->end;
-        device_bvh[current_index].axis = node->axis;
-        device_bvh[current_index].is_leaf = (node->left == nullptr && node->right == nullptr);
-            
-        device_bvh[current_index].left_idx = UINT_MAX;
-        device_bvh[current_index].right_idx = UINT_MAX;
+        fla_bvh[current_index].left_idx = UINT_MAX;
+        fla_bvh[current_index].right_idx = UINT_MAX;
             
         if (node->left) queue.push(node->left);
         if (node->right) queue.push(node->right);
@@ -87,11 +87,11 @@ __host__ void bvhFlatten(bvh_node* root, DeviceBVHNode* device_bvh) {
         int node_idx = pair.second;
             
         if (node->left) {
-            device_bvh[node_idx].left_idx = node_indices[node->left];
+            fla_bvh[node_idx].left_idx = node_indices[node->left];
         }
             
         if (node->right) {
-            device_bvh[node_idx].right_idx = node_indices[node->right];
+            fla_bvh[node_idx].right_idx = node_indices[node->right];
         }
     }
 }
