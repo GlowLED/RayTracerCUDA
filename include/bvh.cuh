@@ -1,5 +1,6 @@
 #pragma once
 #include "vec3.cuh"
+#include "ray.cuh"
 struct bvh_node {
     vec3 pmin, pmax;
     bvh_node *left, *right;
@@ -25,6 +26,7 @@ struct FlattenBVHNode {
     unsigned int start, end;
     bool is_leaf;
     int axis;
+    __device__ bool hit(const ray& r, float tmin, float &tmax) const;
 };
 
 __host__ void bvhFlatten(bvh_node* root, FlattenBVHNode* fla_bvh);

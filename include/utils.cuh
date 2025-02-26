@@ -5,6 +5,8 @@
 #include "scene.cuh"
 #include <stdio.h>
 #include <vector>
+#include <curand.h>          
+#include <curand_kernel.h>
 
 __host__ void cpySceneToDevice(Scene& scene) {
     printf("Copying BVH to device\n");
@@ -30,4 +32,11 @@ __host__ void cpySceneToDevice(Scene& scene) {
     scene.device_index_buffer = device_index_buffer;
     scene.device_offsets = device_offsets;
     printf("Done\n");
+}
+__global__ void init_random_state(curandState* rand_states, int width, int height, int seed)
+{
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    int index = j * width + i;
+    curand_init(seed, index, 0, &rand_states[index]);
 }

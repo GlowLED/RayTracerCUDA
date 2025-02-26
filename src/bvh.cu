@@ -1,6 +1,7 @@
 #include "../include/bvh.cuh"
 #include "../include/scene.cuh"
 #include "../include/vec3.cuh"
+#include "../include/ray.cuh"
 #include <algorithm>
 #include <queue>
 #include <unordered_map>
@@ -94,4 +95,23 @@ __host__ void bvhFlatten(bvh_node* root, FlattenBVHNode* fla_bvh) {
             fla_bvh[node_idx].right_idx = node_indices[node->right];
         }
     }
+}
+
+__device__ bool FlattenBVHNode::hit(const ray &r, float tmin, float &tmax) const {
+    float t0 = tmin, t1 = tmax;
+    for (int i = 0; i < 3; i++) {
+        float invD = 1.0f / r.dir[i];
+        float tNear = (pmin[i] - r.orig[i]) * invD;
+        float tFar = (pmax[i] - r.orig[i]) * invD;
+        if (tNear > tFar) {
+            float tmp = tNear;
+            tNear = tFar;
+            tFar = tmp;
+        }
+        t0 = tNear > t0 ? tNear : t0;
+        t1 = tFar < t1 ? tFar : t1;
+        if (t0 > t1) return false;
+    }
+    tmax = t1;
+    return true;
 }
